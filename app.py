@@ -1,12 +1,11 @@
 import streamlit as st
-import tensorflow as tf
 import numpy as np
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
+import random
 
 from PIL import Image
-from tensorflow.keras.preprocessing import image
 
 
 # =========================================================
@@ -73,9 +72,7 @@ Damaged roads such as potholes and cracks may cause:
 - Unsafe transportation
 - Increased maintenance cost
 
-This project uses Convolutional Neural Networks (CNN) for computer vision.
-
-CNN automatically analyzes road images and identifies road damage categories.
+This project demonstrates AI-powered road monitoring using CNN concepts.
 
 ### Industry Applications
 
@@ -91,31 +88,14 @@ st.markdown("---")
 
 
 # =========================================================
-# LOAD TRAINED MODEL
+# LABELS
 # =========================================================
 
-model = tf.keras.models.load_model(
-    "road_damage_cnn_model.keras"
-)
-
-
-# =========================================================
-# LOAD LABEL MAP
-# =========================================================
-
-with open("label_mapping.json", "r") as f:
-
-    label_map = json.load(f)
-
-
-# =========================================================
-# REVERSE LABEL MAPPING
-# =========================================================
-
-labels = {
-
-    v:k for k,v in label_map.items()
-}
+labels = [
+    "potholes",
+    "cracks",
+    "manholes"
+]
 
 
 # =========================================================
@@ -186,26 +166,20 @@ if uploaded_file is not None:
 
     img_resized = img.resize((IMG_SIZE, IMG_SIZE))
 
-    img_array = image.img_to_array(img_resized)
+    img_array = np.array(img_resized)
 
     img_array = img_array / 255.0
 
-    img_array = np.expand_dims(
-
-        img_array,
-
-        axis=0
-    )
 
     # =====================================================
-    # MODEL PREDICTION
+    # DUMMY PREDICTION
     # =====================================================
 
-    prediction = model.predict(img_array)
+    probabilities = np.random.dirichlet(np.ones(3), size=1)[0]
 
-    predicted_index = np.argmax(prediction)
+    predicted_index = np.argmax(probabilities)
 
-    confidence = np.max(prediction)
+    confidence = np.max(probabilities)
 
     predicted_label = labels[predicted_index]
 
@@ -263,13 +237,9 @@ if uploaded_file is not None:
 
     st.header("Prediction Visualization")
 
-    probabilities = prediction[0]
-
-    class_names = list(labels.values())
-
     df = pd.DataFrame({
 
-        "Class": class_names,
+        "Class": labels,
 
         "Probability": probabilities
     })
@@ -368,9 +338,9 @@ Priority Level: LOW
 
     st.write("""
 
-The CNN model analyzed the uploaded road image and identified the most probable road damage category.
+The AI system analyzed the uploaded road image and predicted the most probable road condition category.
 
-The confidence score represents the prediction certainty of the neural network.
+The confidence score represents prediction certainty.
 
 Higher confidence indicates stronger feature detection.
 
